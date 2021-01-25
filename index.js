@@ -6,6 +6,8 @@ const Product = require("./models/product");
 const methodOverride = require('method-override');
 const { Console } = require("console");
 
+const categories = ["fruit","vegetables","dairy"];
+
 mongoose.connect('mongodb://localhost:27017/farmStand', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         console.log("MONGO CONNECTION OPEN!!!")
@@ -14,6 +16,7 @@ mongoose.connect('mongodb://localhost:27017/farmStand', { useNewUrlParser: true,
         console.log("OH NO MONGO CONNECTION ERROR!!!!")
         console.log(err)
     })
+
 
 
 app.set("views",path.join(__dirname,"views"));
@@ -50,6 +53,38 @@ app.get("/products/:id", async (req,res)=>{
         console.log("There was an error...");
         console.log(error);
     }
+});
+
+
+//Edit product
+app.get("/products/:id/edit", async (req,res)=>{
+    const {id} = req.params;
+    try {
+        const product = await Product.findById(id);
+        res.render("edit",{product, categories});
+    } catch (error) {
+        console.log("There was an error...");
+        console.log(error);
+    }
+});
+
+//Save product edit
+app.put("/products/:id", async (req,res)=>{
+    const {id} = req.params;
+    try{
+        const updatedProduct = await Product.findByIdAndUpdate(id, req.body, { runValidators: true, new: true });
+        res.redirect("/products");
+    }catch(error){
+        console.log("There was an error...");
+        console.log(error);
+    }
+});
+
+//Delete an existing product
+app.delete("/products/:id", async (req,res)=>{
+    const {id} = req.params;
+    const deletedProduct = await Product.findByIdAndDelete(id);
+    res.redirect("/products");
 });
 
 app.listen(3000,()=>{
